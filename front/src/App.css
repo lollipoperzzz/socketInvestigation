@@ -26,6 +26,14 @@
   padding: 20px;
 }
 
+.App-chat {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  background-color: #282c34;
+  height: 100vh;
+}
+
 .App-link {
   color: #61dafb;
 }

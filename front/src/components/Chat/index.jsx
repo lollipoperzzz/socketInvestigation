@@ -1,5 +1,9 @@
 import React, {useEffect, useState} from "react";
 import {Box, Button, makeStyles, TextField} from '@material-ui/core'
+import {MessageSeparator, ChatContainer, MainContainer, MessageList, Message, MessageInput } from "@chatscope/chat-ui-kit-react";
+import styles from "@chatscope/chat-ui-kit-styles/dist/default/styles.min.css";
+import moment from "moment";
+
 
 export const Chat = (props) => {
     const { socket, username, roomId } = props
@@ -9,14 +13,17 @@ export const Chat = (props) => {
 
 
     const onSendMessage = async () => {
-        const messageData = {
-            author: username,
-            roomId,
-            message: myMessage,
-            time: new Date()
+        if(myMessage) {
+            const messageData = {
+                author: username,
+                roomId,
+                message: myMessage,
+                time: moment().format('HH:mm')
+            }
+            await socket.emit('send_message', messageData)
+            setMessageList((list) => [...list, messageData])
+            setMyMessage('')
         }
-        await socket.emit('send_message', messageData)
-        setMessageList((list) => [...list, messageData])
     }
 
     useEffect(() => {
@@ -26,29 +33,33 @@ export const Chat = (props) => {
     }, [socket])
 
     return (
-        <Box className={classes.chatContainer}>
-            <Box className={classes.chatHeader}>
-                LiveChat
-            </Box>
-            <Box className={classes.chatBody}>
-                {messageList.map((item) => <div>{item.message}</div>)}
-            </Box>
-            <Box className={classes.chatFooter}>
-                <TextField
-                    placeholder="Type a message..."
-                    value={myMessage}
-                    onChange={(e) => setMyMessage(e.target.value)}
-                    className={classes.textField}
-                    color="primary"
-                />
-                <Button
-                    onClick={onSendMessage}
-                    color="inherit"
-                >
-                    &#9658;
-                </Button>
-            </Box>
-        </Box>
+        <div style={{ position: "relative", height: "100%" }}>
+            <MainContainer>
+                <ChatContainer>
+                    <MessageList>
+                        {messageList.map((item) =>
+                            <Message model={{
+                              message: item.message,
+                              sentTime: item.time,
+                              sender: item.author,
+                              direction: username === item.author ? 'outgoing' : 'incoming'
+                            }}>
+                                   <Message.Footer sender={item.author} sentTime={item.time} />
+                            </Message>
+                        )}
+                    </MessageList>
+                    <MessageInput
+                        value={myMessage}
+                        className={classes.textInput}
+                        onChange={setMyMessage}
+                        placeholder="Type message here"
+                        onSend={onSendMessage}
+                        attachButton={false}
+                        autoFocus
+                    />
+                </ChatContainer>
+            </MainContainer>
+        </div>
     )
 }
 
@@ -74,5 +85,8 @@ const useStyles = makeStyles(theme => ({
         '& .MuiInputBase-input': {
           color: 'white'
         },
+    },
+    textInput: {
+        textAlign: 'initial'
     }
 }))

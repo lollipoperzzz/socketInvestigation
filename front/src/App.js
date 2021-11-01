@@ -20,7 +20,7 @@ function App() {
     }
   return (
     <div className="App">
-        <header className="App-header">
+        <header className={!showChat ? 'App-header' : 'App-chat'}>
             {!showChat ? (
                 <>
             <Typography variant="h4">Join A Chat</Typography>
